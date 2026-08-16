@@ -1,5 +1,5 @@
 variable "resource_group_name" {
-  description = "Name of the Azure resource group to create."
+  description = "Name of the existing Azure resource group in which to create the storage account."
   type        = string
 }
 

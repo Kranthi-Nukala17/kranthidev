@@ -12,7 +12,7 @@ creating Dev for pipelines
    terraform apply
    ```
 
-The configuration creates a resource group and a secure Azure Storage Account with HTTPS-only traffic, TLS 1.2 minimum, and public blob access disabled.
+The configuration creates a secure Azure Storage Account in your existing resource group, with HTTPS-only traffic, TLS 1.2 minimum, and public blob access disabled.
 
 ## GitHub Actions pipeline
 

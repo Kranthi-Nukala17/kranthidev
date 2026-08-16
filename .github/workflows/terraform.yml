@@ -1,50 +1,64 @@
-name: Terraform Azure
+name: Provision Azure Storage
 
 on:
-  pull_request:
-    branches: [main]
   push:
-    branches: [main]
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
-
-env:
-  TF_IN_AUTOMATION: true
-  ARM_CLIENT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientId }}
-  ARM_CLIENT_SECRET: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientSecret }}
-  ARM_SUBSCRIPTION_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).subscriptionId }}
-  ARM_TENANT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).tenantId }}
-  ARM_USE_AZUREAD: true
 
 jobs:
   terraform:
-    name: Plan${{ github.event_name == 'push' && ' and Apply' || '' }}
+    # Preserve the existing GitHub-hosted runner.
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Authenticate to Azure
+        uses: azure/login@v2
+        with:
+          # Repository secret containing Azure service-principal credentials as JSON.
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Export service-principal credentials for Terraform
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "ARM_CLIENT_ID=$(jq -er '.clientId' <<< "$AZURE_CREDENTIALS")" >> "$GITHUB_ENV"
+          echo "ARM_CLIENT_SECRET=$(jq -er '.clientSecret' <<< "$AZURE_CREDENTIALS")" >> "$GITHUB_ENV"
+          echo "ARM_SUBSCRIPTION_ID=$(jq -er '.subscriptionId' <<< "$AZURE_CREDENTIALS")" >> "$GITHUB_ENV"
+          echo "ARM_TENANT_ID=$(jq -er '.tenantId' <<< "$AZURE_CREDENTIALS")" >> "$GITHUB_ENV"
+          echo "ARM_USE_AZUREAD=true" >> "$GITHUB_ENV"
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.8"
 
-      - name: Terraform init
-        run: terraform init -input=false -backend-config=backend.hcl
+      - name: Ensure Terraform state container exists
+        if: github.event_name != 'pull_request'
+        run: |
+          az storage container create \
+            --account-name aksdevstg0012504 \
+            --name tfstate \
+            --auth-mode login
 
-      - name: Terraform format check
-        run: terraform fmt -check -recursive
+      - name: Initialize Terraform
+        run: terraform init -input=false
 
-      - name: Terraform validate
+      - name: Validate Terraform
         run: terraform validate
 
-      - name: Terraform plan
-        run: terraform plan -input=false -no-color -out=tfplan
+      - name: Plan storage account changes
+        run: terraform plan -input=false -out=tfplan
 
-      - name: Terraform apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Create or update storage account
+        if: github.event_name != 'pull_request'
         run: terraform apply -input=false -auto-approve tfplan

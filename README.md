@@ -29,6 +29,13 @@ Configure one GitHub repository **secret** named `AZURE_CREDENTIALS` with your A
 }
 ```
 
-The service principal needs the `Contributor` role on the subscription (or the target resource group).
+Before the first workflow run, update `backend.hcl` with a globally unique state storage account name, then create that storage account and its `tfstate` blob container. For example:
 
-> This simplified sample uses Terraform's local state, which a GitHub-hosted runner does not preserve between runs. Use it for a first demonstration only; add an Azure remote-state backend before managing resources repeatedly.
+```powershell
+az storage account create --name <unique-state-account-name> --resource-group aksdevrg --location "North Europe" --sku Standard_LRS --kind StorageV2 --allow-blob-public-access false --min-tls-version TLS1_2
+az storage container create --name tfstate --account-name <unique-state-account-name> --auth-mode login
+```
+
+The service principal needs `Contributor` to create the managed resources and `Storage Blob Data Contributor` on the state storage account. The backend configuration contains no secrets and is committed so the pipeline can use it.
+
+Terraform state is then stored in the `tfstate` container in Azure Blob Storage.

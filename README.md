@@ -16,7 +16,7 @@ The configuration creates a secure Azure Storage Account in your existing resour
 
 ## GitHub Actions pipeline
 
-The workflow in `.github/workflows/terraform.yml` validates and plans infrastructure on pull requests, then applies the saved plan after a push to `main`.
+`.github/workflows/terraform-pr.yml` validates and plans infrastructure when a pull request targets `main`. `.github/workflows/terraform.yml` applies the Terraform changes only after code is merged into `main`.
 
 Configure one GitHub repository **secret** named `AZURE_CREDENTIALS` with your Azure service principal JSON:
 

@@ -1,27 +1,19 @@
-name: Provision Azure Storage
+name: Terraform Pull Request Validation
 
 on:
-  push:
+  pull_request:
     branches: ["main"]
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  terraform:
-    # Preserve the existing GitHub-hosted runner.
+  terraform-plan:
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Authenticate to Azure
-        uses: azure/login@v2
-        with:
-          # Repository secret containing Azure service-principal credentials as JSON.
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Export service-principal credentials for Terraform
         env:
@@ -40,21 +32,14 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
-      - name: Ensure Terraform state container exists
-        run: |
-          az storage container create \
-            --account-name aksdevstg0012504 \
-            --name tfstate \
-            --auth-mode login
-
       - name: Initialize Terraform
         run: terraform init -input=false
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
 
       - name: Validate Terraform
         run: terraform validate
 
       - name: Plan storage account changes
-        run: terraform plan -input=false -out=tfplan
-
-      - name: Create or update storage account
-        run: terraform apply -input=false -auto-approve tfplan
+        run: terraform plan -input=false -no-color

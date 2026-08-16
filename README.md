@@ -36,6 +36,6 @@ az storage account create --name <unique-state-account-name> --resource-group ak
 az storage container create --name tfstate --account-name <unique-state-account-name> --auth-mode login
 ```
 
-The service principal needs `Contributor` to create the managed resources and `Storage Blob Data Contributor` on the state storage account. The backend configuration contains no secrets and is committed so the pipeline can use it.
+The workflow reads the service-principal fields from `AZURE_CREDENTIALS` and passes them directly to Terraform. The service principal needs `Contributor` to create the managed resources and `Storage Blob Data Contributor` on the state storage account. The backend configuration contains no secrets and is committed so the pipeline can use it.
 
 Terraform state is then stored in the `tfstate` container in Azure Blob Storage.

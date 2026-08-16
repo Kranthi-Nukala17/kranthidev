@@ -47,10 +47,26 @@ jobs:
             --name tfstate \
             --auth-mode login
 
-      - name: Initialize Terraform
+      - name: Initialize resource group Terraform
+        working-directory: ./resouce group
         run: terraform init -input=false
 
-      - name: Validate Terraform
+      - name: Validate resource group Terraform
+        working-directory: ./resouce group
+        run: terraform validate
+
+      - name: Plan resource group changes
+        working-directory: ./resouce group
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Create or update resource group
+        working-directory: ./resouce group
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Initialize storage account Terraform
+        run: terraform init -input=false
+
+      - name: Validate storage account Terraform
         run: terraform validate
 
       - name: Plan storage account changes

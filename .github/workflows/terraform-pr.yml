@@ -32,13 +32,25 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
-      - name: Initialize Terraform
+      - name: Initialize resource group Terraform
+        working-directory: ./resouce group
+        run: terraform init -input=false
+
+      - name: Validate resource group Terraform
+        working-directory: ./resouce group
+        run: terraform validate
+
+      - name: Plan resource group changes
+        working-directory: ./resouce group
+        run: terraform plan -input=false -no-color
+
+      - name: Initialize storage account Terraform
         run: terraform init -input=false
 
       - name: Check Terraform formatting
         run: terraform fmt -check -recursive
 
-      - name: Validate Terraform
+      - name: Validate storage account Terraform
         run: terraform validate
 
       - name: Plan storage account changes

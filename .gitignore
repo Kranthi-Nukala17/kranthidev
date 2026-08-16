@@ -1,0 +1,9 @@
+# Terraform local state and generated configuration
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+tfplan
+
+# Terraform provider dependency lock file should be committed after terraform init.
+#!.terraform.lock.hcl

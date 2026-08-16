@@ -31,4 +31,6 @@ Configure one GitHub repository **secret** named `AZURE_CREDENTIALS` with your A
 
 Terraform state is configured in `backend.tf` and stored in the `tfstate` container of the existing `tdssto` storage account. The pipeline creates the container on a push to `main` when it does not already exist.
 
+The resource group configuration in `resouce group/` uses the same state container with a separate state key, `resource-group.terraform.tfstate`. The workflows plan it for pull requests and apply it after merges to `main`.
+
 The workflow reads the service-principal fields from `AZURE_CREDENTIALS` and passes them directly to Terraform. The service principal needs `Contributor` to create the managed resources and `Storage Blob Data Contributor` on `tdssto`.

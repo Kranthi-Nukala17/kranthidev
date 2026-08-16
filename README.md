@@ -2,7 +2,7 @@
 creating Dev for pipelines
 ## Azure Storage Account Terraform
 
-1. Copy `terraform.tfvars.example` to `terraform.tfvars`, set a globally unique `storage_account_name`, and commit the file so GitHub Actions can read it.
+1. Set a globally unique `storage_account_name` in `terraform.tfvars` and commit the file so GitHub Actions can read it.
 2. Authenticate to Azure, for example: `az login`.
 3. Run:
 
@@ -29,13 +29,6 @@ Configure one GitHub repository **secret** named `AZURE_CREDENTIALS` with your A
 }
 ```
 
-Before the first workflow run, update `backend.hcl` with a globally unique state storage account name, then create that storage account and its `tfstate` blob container. For example:
+Terraform state is configured in `backend.tf` and stored in the `tfstate` container of the existing `tdssto` storage account. The pipeline creates the container on a push to `main` when it does not already exist.
 
-```powershell
-az storage account create --name <unique-state-account-name> --resource-group aksdevrg --location "North Europe" --sku Standard_LRS --kind StorageV2 --allow-blob-public-access false --min-tls-version TLS1_2
-az storage container create --name tfstate --account-name <unique-state-account-name> --auth-mode login
-```
-
-The workflow reads the service-principal fields from `AZURE_CREDENTIALS` and passes them directly to Terraform. The service principal needs `Contributor` to create the managed resources and `Storage Blob Data Contributor` on the state storage account. The backend configuration contains no secrets and is committed so the pipeline can use it.
-
-Terraform state is then stored in the `tfstate` container in Azure Blob Storage.
+The workflow reads the service-principal fields from `AZURE_CREDENTIALS` and passes them directly to Terraform. The service principal needs `Contributor` to create the managed resources and `Storage Blob Data Contributor` on `tdssto`.

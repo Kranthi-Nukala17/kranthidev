@@ -46,7 +46,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           az storage container create \
-            --account-name aksdevstg0012504 \
+            --account-name tdssto \
             --name tfstate \
             --auth-mode login
 

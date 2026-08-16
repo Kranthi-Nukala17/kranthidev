@@ -1,9 +1,6 @@
 terraform {
   required_version = ">= 1.5.0"
 
-  # Backend values are kept in backend.hcl, not Terraform variables.
-  backend "azurerm" {}
-
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
